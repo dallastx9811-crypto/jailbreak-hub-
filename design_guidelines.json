@@ -1,0 +1,80 @@
+{
+  "theme": "dark",
+  "archetype": "7 - Electric & Neon / Retro-Futurism (The 'Terminal' Look)",
+  "typography": {
+    "heading_font": "JetBrains Mono",
+    "body_font": "IBM Plex Sans",
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-black",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "body": "text-base leading-relaxed",
+      "small_labels": "text-sm uppercase tracking-[0.2em]"
+    },
+    "rules": "Never use Inter for headings. Keep headings tight (tracking-tight) and labels uppercase and wide."
+  },
+  "colors": {
+    "background": "#050505",
+    "surface": "#0a0a0a",
+    "surface_glass": "rgba(5, 5, 5, 0.6)",
+    "border": "rgba(255, 255, 255, 0.1)",
+    "primary": "#00FF41",
+    "primary_hover": "#00CC33",
+    "accent": "#00E5FF",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#8F9BA8",
+    "rules": "Avoid pure #000000. Use tinting. Hover states must be lighter/brighter and accessible."
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous Spacing (p-8, p-12) for hero sections, Dense (p-4, gap-4) for data matrix.",
+    "grid_strategy": "Control Room Grid for Tools and Matrix, Asymmetric Bento for Hero and Marketing sections.",
+    "container_padding": "px-6 md:px-12 lg:px-24",
+    "border_radius": "rounded-none or rounded-sm (max 4px)",
+    "rules": "Containers with borders must have internal padding. Grid items must be direct children."
+  },
+  "surface_strategies": {
+    "nav_header": "Crystal Glass: bg-black/60 backdrop-blur-xl border-b border-white/10",
+    "cards": "Grid Borders (Technical Look): Flat background #0a0a0a, 1px solid border-white/10, no shadow. Hover: border-primary/50 -translate-y-1 shadow-[0_4px_20px_rgba(0,255,65,0.1)]",
+    "compatibility_checker": "Tracing Beam style: 1px border with glowing primary color (border-primary/50) and subtle blur behind."
+  },
+  "components": {
+    "buttons": "Square or rounded-sm, high contrast. Primary: bg-primary text-black font-bold hover:bg-primary_hover hover:text-black. Secondary: bg-transparent border border-white/20 text-white hover:border-white hover:text-white",
+    "forms": "Shadcn UI Select and Input, customized with square corners, dark backgrounds (bg-surface), and primary color focus rings (focus:ring-primary focus:border-primary).",
+    "tables": "Dense, grid-borders, text-sm, distinct alternating row colors.",
+    "icons": "Use Phosphor Icons (yarn add @phosphor-icons/react) for a technical/developer feel."
+  },
+  "animations": {
+    "hover": "transition-all duration-200 ease-in-out",
+    "entrance": "Fade in and slide up for lists and grids."
+  },
+  "media": {
+    "hero_image": {
+      "url": "https://images.unsplash.com/photo-1714846201670-1c5721196c7a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwzfHxoYWNrZXIlMjB0ZXJtaW5hbCUyMGNvZGV8ZW58MHx8fHwxNzc3Nzk3ODcwfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Close up of computer screen with code, hacker terminal vibe",
+      "placement": "Hero section right side or as a background image with heavy bg-black/70 overlay to ensure text contrast"
+    },
+    "abstract_tech_bg": {
+      "url": "https://images.unsplash.com/photo-1761599821310-da0d6356b4f3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODh8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGdsb3dpbmclMjBjb2RlJTIwdGVjaG5vbG9neSUyMGRhcmt8ZW58MHx8fHwxNzc3Nzk3ODU4fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract green digital pattern",
+      "placement": "Background for Compatibility Checker or Testimonials with heavy dark overlay"
+    },
+    "iphone_mockup": {
+      "url": "https://images.unsplash.com/photo-1557680784-6db47c6f56ab?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjBkYXJrJTIwc2NyZWVuJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3Nzc3OTc4Njl8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Black smartphone",
+      "placement": "Beside the device support matrix or tutorials to ground the technical data in reality"
+    }
+  },
+  "instructions_to_main_agent": [
+    "CRITICAL: Include data-testid attributes on all interactive and key informational elements (buttons, links, form inputs, menus, etc) following kebab-case, role-based naming conventions.",
+    "Strictly follow the Retro-Futurism/Terminal archetype: dark backgrounds, high contrast neon accents (Terminal Green #00FF41 or Cyan #00E5FF), and technical grid layouts.",
+    "Use JetBrains Mono for all headings and IBM Plex Sans for body text.",
+    "Build the Compatibility Checker using highly customized Shadcn components (Select, Button) that look like terminal inputs. Do not use generic Vercel-like styles.",
+    "Do not use default generic Shadcn card styles. Implement the 'Grid Borders' or 'Tracing Beam' surface strategy for cards to expose the skeleton.",
+    "Include an educational disclaimer prominently in the Hero section, stating the site is for educational purposes only.",
+    "Never use generic placeholder images or text. Use the provided media URLs.",
+    "Implement a sticky nav with Crystal Glass effect (backdrop-blur-xl bg-black/60).",
+    "For the tools directory, present Palera1n, Dopamine, Unc0ver, Checkra1n, Taurine, etc. as technical 'nodes' or cards in a strict grid.",
+    "Ensure hover states explicitly set text and background colors to maintain high contrast (e.g., hover:bg-primary hover:text-black).",
+    "Add 'prefers-reduced-motion' media query checks if implementing complex animations."
+  ]
+}
