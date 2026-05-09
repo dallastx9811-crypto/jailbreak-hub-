@@ -16,7 +16,7 @@ import { getStats } from "@/lib/api";
 export default function Home() {
     const [stats, setStats] = useState({
         tools: 8,
-        devices: 22,
+        devices: 58,
         tutorials: 4,
         ios_versions: 29,
     });

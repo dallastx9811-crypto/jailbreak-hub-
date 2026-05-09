@@ -23,7 +23,7 @@ export default function DeviceMatrix() {
             <SectionHeader
                 kicker="03 · Silicon.map"
                 title="Device support matrix"
-                description="From A9 to A17 Pro. Every iPhone and iPad we track, with their max iOS and SoC generation."
+                description="From A7 to M2. Every iPhone and iPad we track, with their max iOS and SoC generation."
             />
 
             <div className="mt-10 mb-6 flex items-center gap-3 border border-white/10 bg-jb-surface px-4 py-3 max-w-md">

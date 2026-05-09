@@ -10,7 +10,9 @@ import {
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
@@ -79,15 +81,22 @@ export default function CompatibilityChecker() {
                                 <SelectContent
                                     className="bg-jb-surface border-white/15 rounded-none font-mono max-h-80"
                                 >
-                                    {devices.map((d) => (
-                                        <SelectItem
-                                            key={d.id}
-                                            value={d.id}
-                                            data-testid={`compat-device-${d.id}`}
-                                            className="font-mono text-sm focus:bg-jb-primary/10 focus:text-jb-primary rounded-none"
-                                        >
-                                            {d.name} · {d.soc}
-                                        </SelectItem>
+                                    {groupDevices(devices).map(({ label, items }) => (
+                                        <SelectGroup key={label}>
+                                            <SelectLabel className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary px-3 py-1.5 bg-black/40">
+                                                {label}
+                                            </SelectLabel>
+                                            {items.map((d) => (
+                                                <SelectItem
+                                                    key={d.id}
+                                                    value={d.id}
+                                                    data-testid={`compat-device-${d.id}`}
+                                                    className="font-mono text-sm focus:bg-jb-primary/10 focus:text-jb-primary rounded-none"
+                                                >
+                                                    {d.name} · {d.soc}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -215,6 +224,21 @@ export default function CompatibilityChecker() {
             </div>
         </section>
     );
+}
+
+function groupDevices(devices) {
+    const order = ["iPhone", "iPad Air", "iPad mini", "iPad Pro", "iPad"];
+    const buckets = {};
+    for (const d of devices) {
+        let cat = "iPad";
+        if (d.name.startsWith("iPhone")) cat = "iPhone";
+        else if (d.name.startsWith("iPad Air")) cat = "iPad Air";
+        else if (d.name.startsWith("iPad mini")) cat = "iPad mini";
+        else if (d.name.startsWith("iPad Pro")) cat = "iPad Pro";
+        if (!buckets[cat]) buckets[cat] = [];
+        buckets[cat].push(d);
+    }
+    return order.filter((k) => buckets[k]).map((k) => ({ label: k, items: buckets[k] }));
 }
 
 function Field({ label, children }) {

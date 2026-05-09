@@ -11,6 +11,7 @@ const FILTERS = [
     { id: "legacy", label: "Legacy" },
     { id: "rootless", label: "Rootless" },
     { id: "rootful", label: "Rootful" },
+    { id: "utility", label: "Utility" },
 ];
 
 export default function ToolsDirectory() {
@@ -29,6 +30,7 @@ export default function ToolsDirectory() {
         if (filter === "legacy") return t.status === "legacy";
         if (filter === "rootless") return !t.rootful;
         if (filter === "rootful") return t.rootful;
+        if (filter === "utility") return t.type === "utility";
         return true;
     });
 
@@ -78,7 +80,7 @@ function ToolCard({ tool, idx }) {
     return (
         <article
             data-testid={`tool-card-${tool.id}`}
-            className="group relative border-r border-b border-white/10 p-7 hover:bg-jb-primary/[0.03] transition-colors"
+            className="group relative border-r border-b border-white/10 p-7 hover:bg-jb-primary/[0.03] transition-colors last:border-r-0 md:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(3n)]:border-r-0"
         >
             <div className="flex items-start justify-between mb-5">
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted">

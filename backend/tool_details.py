@@ -15,7 +15,7 @@ TOOL_DETAILS = {
             "Disable passcode and Face ID/Touch ID before starting",
             "Device battery above 50%",
             "iOS version between 15.0 and 17.7.2",
-            "A9–A11 device (iPhone 6s through iPhone X, iPad 6/7, iPad Pro 2017)"
+            "A9–A11 device (iPhone 6s through iPhone X, iPad 5–7, iPad Pro 2015/2017) — includes A9X (iPad Pro 2015 9.7/12.9)"
         ],
         "commands": [
             {
