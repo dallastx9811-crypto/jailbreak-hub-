@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, Package, Cpu, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ExternalLink, Package, Cpu, Shield, ArrowUpRight } from "lucide-react";
 import { getTools } from "@/lib/api";
 import SectionHeader from "@/components/jb/SectionHeader";
 import { toast } from "sonner";
@@ -127,11 +128,19 @@ function ToolCard({ tool, idx }) {
                 target="_blank"
                 rel="noreferrer"
                 data-testid={`tool-link-${tool.id}`}
-                className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-jb-primary hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.22em] text-jb-muted hover:text-white transition-colors"
             >
-                Visit project
+                Project site
                 <ExternalLink size={12} />
             </a>
+            <Link
+                to={`/tool/${tool.id}`}
+                data-testid={`tool-detail-link-${tool.id}`}
+                className="mt-4 inline-flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-[0.22em] text-jb-primary hover:text-white border border-jb-primary/40 hover:border-white px-4 py-2.5 w-full transition-colors"
+            >
+                View install guide
+                <ArrowUpRight size={14} />
+            </Link>
         </article>
     );
 }

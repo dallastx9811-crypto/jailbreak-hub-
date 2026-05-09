@@ -6,9 +6,11 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
+
+from tool_details import TOOL_DETAILS
 
 
 ROOT_DIR = Path(__file__).parent
@@ -422,6 +424,15 @@ async def get_tool(tool_id: str):
         if t["id"] == tool_id:
             return t
     raise HTTPException(status_code=404, detail="Tool not found")
+
+
+@api_router.get("/tools/{tool_id}/detail")
+async def get_tool_detail(tool_id: str) -> Dict[str, Any]:
+    base = next((t for t in TOOLS if t["id"] == tool_id), None)
+    if not base:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    extra = TOOL_DETAILS.get(tool_id, {})
+    return {**base, **extra}
 
 
 @api_router.get("/devices", response_model=List[Device])

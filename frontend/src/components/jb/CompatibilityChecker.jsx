@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Zap, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Zap, Loader2, ArrowUpRight } from "lucide-react";
 import {
     getDevices,
     getIosVersions,
@@ -156,19 +157,26 @@ export default function CompatibilityChecker() {
                             {result.compatible_tools.length > 0 ? (
                                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {result.compatible_tools.map((t) => (
-                                        <div
+                                        <Link
                                             key={t.id}
+                                            to={`/tool/${t.id}`}
                                             data-testid={`compat-tool-${t.id}`}
-                                            className="border border-jb-primary/40 bg-black/40 p-5 hover:bg-jb-primary/5 transition-colors"
+                                            className="group border border-jb-primary/40 bg-black/40 p-5 hover:bg-jb-primary/5 transition-colors block"
                                         >
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <CheckCircle2
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle2
+                                                        size={14}
+                                                        className="text-jb-primary"
+                                                    />
+                                                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary">
+                                                        compatible
+                                                    </span>
+                                                </div>
+                                                <ArrowUpRight
                                                     size={14}
-                                                    className="text-jb-primary"
+                                                    className="text-jb-muted group-hover:text-jb-primary transition-colors"
                                                 />
-                                                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary">
-                                                    compatible
-                                                </span>
                                             </div>
                                             <div className="font-mono text-lg font-bold">
                                                 {t.name}
@@ -179,7 +187,10 @@ export default function CompatibilityChecker() {
                                             <div className="text-xs text-jb-muted mt-3 font-mono">
                                                 iOS {t.ios_min} → {t.ios_max}
                                             </div>
-                                        </div>
+                                            <div className="mt-4 pt-3 border-t border-white/10 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary">
+                                                view install guide →
+                                            </div>
+                                        </Link>
                                     ))}
                                 </div>
                             ) : (

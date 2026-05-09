@@ -2,6 +2,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import Home from "@/pages/Home";
+import ToolDetail from "@/pages/ToolDetail";
 
 function App() {
     return (
@@ -9,6 +10,7 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Home />} />
+                    <Route path="/tool/:id" element={<ToolDetail />} />
                 </Routes>
             </BrowserRouter>
             <Toaster

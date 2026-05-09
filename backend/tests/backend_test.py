@@ -55,6 +55,63 @@ class TestTools:
         assert r.status_code == 404
 
 
+# -------- Tool Detail (iteration 2) -------- #
+class TestToolDetail:
+    def test_palera1n_detail(self, client):
+        r = client.get(f"{API}/tools/palera1n/detail")
+        assert r.status_code == 200
+        d = r.json()
+        # base fields preserved
+        assert d["id"] == "palera1n"
+        assert d["name"] == "palera1n"
+        assert d["status"] == "active"
+        # extras merged in
+        assert d["download_url"].startswith("https://")
+        assert isinstance(d["requirements"], list) and len(d["requirements"]) > 0
+        assert isinstance(d["commands"], list) and len(d["commands"]) > 0
+        for c in d["commands"]:
+            assert "label" in c and "platform" in c and "code" in c
+        assert isinstance(d["install_steps"], list) and len(d["install_steps"]) > 0
+        assert isinstance(d["troubleshooting"], list) and len(d["troubleshooting"]) > 0
+        for t in d["troubleshooting"]:
+            assert "problem" in t and "fix" in t
+        assert "official_site" in d
+
+    def test_dopamine_detail(self, client):
+        r = client.get(f"{API}/tools/dopamine/detail")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["id"] == "dopamine"
+        assert d["name"] == "Dopamine"
+        assert d["download_url"].startswith("https://")
+        assert len(d["requirements"]) > 0
+        assert len(d["commands"]) > 0
+        assert len(d["install_steps"]) > 0
+        assert len(d["troubleshooting"]) > 0
+
+    def test_all_tools_have_details(self, client):
+        for tid in ["palera1n", "dopamine", "unc0ver", "checkra1n", "taurine", "odyssey", "xinaA15", "roothide"]:
+            r = client.get(f"{API}/tools/{tid}/detail")
+            assert r.status_code == 200, f"detail failed for {tid}"
+            d = r.json()
+            assert d["id"] == tid
+            assert "requirements" in d and len(d["requirements"]) > 0
+            assert "install_steps" in d and len(d["install_steps"]) > 0
+
+    def test_detail_unknown_returns_404(self, client):
+        r = client.get(f"{API}/tools/does-not-exist/detail")
+        assert r.status_code == 404
+
+    def test_base_endpoint_has_no_extras(self, client):
+        # Existing /api/tools/{id} returns Pydantic Tool model (no extras)
+        r = client.get(f"{API}/tools/palera1n")
+        assert r.status_code == 200
+        d = r.json()
+        assert "requirements" not in d
+        assert "commands" not in d
+        assert "install_steps" not in d
+
+
 # -------- Devices -------- #
 class TestDevices:
     def test_list_devices(self, client):
