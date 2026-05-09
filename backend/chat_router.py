@@ -1,6 +1,6 @@
 """Chat assistant grounded in the jailbreak catalog.
 
-Uses Claude Sonnet 4.5 via Emergent LLM Universal Key.
+Uses Claude via the Anthropic SDK.
 Conversation history is stored in MongoDB so sessions persist.
 """
 import os
@@ -8,9 +8,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
+import anthropic
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 
 def build_system_prompt(tools, devices, ios_versions, tool_details):
@@ -68,7 +68,7 @@ def make_chat_router(db, tools, devices, ios_versions, tool_details):
     router = APIRouter(prefix="/api/chat", tags=["chat"])
 
     SYSTEM_PROMPT = build_system_prompt(tools, devices, ios_versions, tool_details)
-    LLM_KEY = os.environ.get("EMERGENT_LLM_KEY")
+    ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
     class ChatRequest(BaseModel):
         message: str
@@ -86,7 +86,7 @@ def make_chat_router(db, tools, devices, ios_versions, tool_details):
 
     @router.post("", response_model=ChatResponse)
     async def chat(req: ChatRequest):
-        if not LLM_KEY:
+        if not ANTHROPIC_KEY:
             raise HTTPException(status_code=503, detail="LLM key not configured")
         if not req.message or not req.message.strip():
             raise HTTPException(status_code=400, detail="Message is required")
@@ -94,19 +94,26 @@ def make_chat_router(db, tools, devices, ios_versions, tool_details):
         session_id = req.session_id or str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
 
-        # Call LLM first; only persist on success to avoid dangling user msgs.
-        chat_client = LlmChat(
-            api_key=LLM_KEY,
-            session_id=session_id,
-            system_message=SYSTEM_PROMPT,
-        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        # Fetch prior history for this session
+        cursor = db.chat_messages.find(
+            {"session_id": session_id}, {"_id": 0}
+        ).sort("ts", 1)
+        prior = await cursor.to_list(length=200)
+
+        messages = [{"role": m["role"], "content": m["content"]} for m in prior]
+        messages.append({"role": "user", "content": req.message})
 
         try:
-            reply = await chat_client.send_message(UserMessage(text=req.message))
-        except Exception as e:  # noqa: BLE001
+            client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+            response = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=1024,
+                system=SYSTEM_PROMPT,
+                messages=messages,
+            )
+            reply_text = response.content[0].text
+        except Exception as e:
             raise HTTPException(status_code=502, detail=f"LLM error: {e}")
-
-        reply_text = reply if isinstance(reply, str) else str(reply)
 
         await db.chat_messages.insert_many([
             {
@@ -123,7 +130,6 @@ def make_chat_router(db, tools, devices, ios_versions, tool_details):
             },
         ])
 
-        # Fetch full history for the session (excluding _id)
         cursor = db.chat_messages.find(
             {"session_id": session_id}, {"_id": 0}
         ).sort("ts", 1)
