@@ -34,8 +34,8 @@ TOOLS = [
         "type": "semi-tethered",
         "ios_min": "15.0",
         "ios_max": "17.7.2",
-        "devices": ["iPhone 8", "iPhone 8 Plus", "iPhone X", "iPad (6th gen)", "iPad (7th gen)", "iPad Pro (2017)"],
-        "soc": ["A9", "A10", "A10X", "A11"],
+        "devices": ["iPhone 6s", "iPhone 6s Plus", "iPhone SE (1st gen)", "iPhone 7", "iPhone 7 Plus", "iPhone 8", "iPhone 8 Plus", "iPhone X", "iPad (5th gen)", "iPad (6th gen)", "iPad (7th gen)", "iPad Pro 9.7", "iPad Pro 12.9 (2015)", "iPad Pro (2017)"],
+        "soc": ["A9", "A9X", "A10", "A10X", "A11"],
         "rootful": True,
         "package_manager": "Sileo / Zebra",
         "developer": "palera1n team",
@@ -82,8 +82,8 @@ TOOLS = [
         "type": "semi-tethered",
         "ios_min": "12.0",
         "ios_max": "14.8.1",
-        "devices": ["iPhone 5s", "iPhone 6", "iPhone 6s", "iPhone 7", "iPhone 8", "iPhone X"],
-        "soc": ["A7", "A8", "A9", "A10", "A11"],
+        "devices": ["iPhone 5s", "iPhone 6", "iPhone 6 Plus", "iPhone 6s", "iPhone 6s Plus", "iPhone SE (1st gen)", "iPhone 7", "iPhone 7 Plus", "iPhone 8", "iPhone 8 Plus", "iPhone X", "iPad Air", "iPad Air 2", "iPad mini 2", "iPad mini 3", "iPad mini 4", "iPad (5th gen)", "iPad (6th gen)", "iPad (7th gen)", "iPad Pro 9.7", "iPad Pro 12.9", "iPad Pro (2017)"],
+        "soc": ["A7", "A8", "A8X", "A9", "A9X", "A10", "A10X", "A11"],
         "rootful": True,
         "package_manager": "Cydia",
         "developer": "checkra1n team",
@@ -158,28 +158,78 @@ TOOLS = [
 ]
 
 DEVICES = [
+    # iPhone — A7 (iOS 12 max)
+    {"id": "iphone-5s", "name": "iPhone 5s", "soc": "A7", "max_ios": "12.5.7"},
+    # iPhone — A8 (iOS 12 max)
+    {"id": "iphone-6", "name": "iPhone 6", "soc": "A8", "max_ios": "12.5.7"},
+    {"id": "iphone-6-plus", "name": "iPhone 6 Plus", "soc": "A8", "max_ios": "12.5.7"},
+    # iPhone — A9 (iOS 15 max)
+    {"id": "iphone-6s", "name": "iPhone 6s", "soc": "A9", "max_ios": "15.8.3"},
+    {"id": "iphone-6s-plus", "name": "iPhone 6s Plus", "soc": "A9", "max_ios": "15.8.3"},
+    {"id": "iphone-se-1", "name": "iPhone SE (1st gen)", "soc": "A9", "max_ios": "15.8.3"},
+    # iPhone — A10
+    {"id": "iphone-7", "name": "iPhone 7", "soc": "A10", "max_ios": "15.8.3"},
+    {"id": "iphone-7-plus", "name": "iPhone 7 Plus", "soc": "A10", "max_ios": "15.8.3"},
+    # iPhone — A11
     {"id": "iphone-8", "name": "iPhone 8", "soc": "A11", "max_ios": "16.7.10"},
     {"id": "iphone-8-plus", "name": "iPhone 8 Plus", "soc": "A11", "max_ios": "16.7.10"},
     {"id": "iphone-x", "name": "iPhone X", "soc": "A11", "max_ios": "16.7.10"},
+    # iPhone — A12+
     {"id": "iphone-xs", "name": "iPhone XS", "soc": "A12", "max_ios": "18.x"},
+    {"id": "iphone-xs-max", "name": "iPhone XS Max", "soc": "A12", "max_ios": "18.x"},
     {"id": "iphone-xr", "name": "iPhone XR", "soc": "A12", "max_ios": "18.x"},
     {"id": "iphone-11", "name": "iPhone 11", "soc": "A13", "max_ios": "18.x"},
     {"id": "iphone-11-pro", "name": "iPhone 11 Pro", "soc": "A13", "max_ios": "18.x"},
+    {"id": "iphone-11-pro-max", "name": "iPhone 11 Pro Max", "soc": "A13", "max_ios": "18.x"},
     {"id": "iphone-se-2", "name": "iPhone SE (2nd gen)", "soc": "A13", "max_ios": "18.x"},
     {"id": "iphone-12", "name": "iPhone 12", "soc": "A14", "max_ios": "18.x"},
+    {"id": "iphone-12-mini", "name": "iPhone 12 mini", "soc": "A14", "max_ios": "18.x"},
     {"id": "iphone-12-pro", "name": "iPhone 12 Pro", "soc": "A14", "max_ios": "18.x"},
+    {"id": "iphone-12-pro-max", "name": "iPhone 12 Pro Max", "soc": "A14", "max_ios": "18.x"},
     {"id": "iphone-13", "name": "iPhone 13", "soc": "A15", "max_ios": "18.x"},
+    {"id": "iphone-13-mini", "name": "iPhone 13 mini", "soc": "A15", "max_ios": "18.x"},
     {"id": "iphone-13-pro", "name": "iPhone 13 Pro", "soc": "A15", "max_ios": "18.x"},
+    {"id": "iphone-13-pro-max", "name": "iPhone 13 Pro Max", "soc": "A15", "max_ios": "18.x"},
+    {"id": "iphone-se-3", "name": "iPhone SE (3rd gen)", "soc": "A15", "max_ios": "18.x"},
     {"id": "iphone-14", "name": "iPhone 14", "soc": "A15", "max_ios": "18.x"},
+    {"id": "iphone-14-plus", "name": "iPhone 14 Plus", "soc": "A15", "max_ios": "18.x"},
     {"id": "iphone-14-pro", "name": "iPhone 14 Pro", "soc": "A16", "max_ios": "18.x"},
+    {"id": "iphone-14-pro-max", "name": "iPhone 14 Pro Max", "soc": "A16", "max_ios": "18.x"},
     {"id": "iphone-15", "name": "iPhone 15", "soc": "A16", "max_ios": "18.x"},
+    {"id": "iphone-15-plus", "name": "iPhone 15 Plus", "soc": "A16", "max_ios": "18.x"},
     {"id": "iphone-15-pro", "name": "iPhone 15 Pro", "soc": "A17 Pro", "max_ios": "18.x"},
+    {"id": "iphone-15-pro-max", "name": "iPhone 15 Pro Max", "soc": "A17 Pro", "max_ios": "18.x"},
+
+    # iPad Air
+    {"id": "ipad-air-1", "name": "iPad Air (1st gen)", "soc": "A7", "max_ios": "12.5.7"},
+    {"id": "ipad-air-2", "name": "iPad Air 2", "soc": "A8X", "max_ios": "15.8.3"},
+    {"id": "ipad-air-3", "name": "iPad Air (3rd gen)", "soc": "A12", "max_ios": "18.x"},
+    {"id": "ipad-air-4", "name": "iPad Air (4th gen)", "soc": "A14", "max_ios": "18.x"},
+    {"id": "ipad-air-5", "name": "iPad Air (5th gen)", "soc": "M1", "max_ios": "18.x"},
+
+    # iPad mini
+    {"id": "ipad-mini-2", "name": "iPad mini 2", "soc": "A7", "max_ios": "12.5.7"},
+    {"id": "ipad-mini-3", "name": "iPad mini 3", "soc": "A7", "max_ios": "12.5.7"},
+    {"id": "ipad-mini-4", "name": "iPad mini 4", "soc": "A8", "max_ios": "15.8.3"},
+    {"id": "ipad-mini-5", "name": "iPad mini (5th gen)", "soc": "A12", "max_ios": "18.x"},
+    {"id": "ipad-mini-6", "name": "iPad mini (6th gen)", "soc": "A15", "max_ios": "18.x"},
+
+    # iPad (regular)
+    {"id": "ipad-5", "name": "iPad (5th gen)", "soc": "A9", "max_ios": "16.7.10"},
     {"id": "ipad-6", "name": "iPad (6th gen)", "soc": "A10", "max_ios": "17.x"},
     {"id": "ipad-7", "name": "iPad (7th gen)", "soc": "A10", "max_ios": "17.x"},
-    {"id": "ipad-pro-2017", "name": "iPad Pro (2017)", "soc": "A10X", "max_ios": "16.x"},
-    {"id": "ipad-mini-6", "name": "iPad Mini (6th gen)", "soc": "A15", "max_ios": "18.x"},
+    {"id": "ipad-8", "name": "iPad (8th gen)", "soc": "A12", "max_ios": "18.x"},
+    {"id": "ipad-9", "name": "iPad (9th gen)", "soc": "A13", "max_ios": "18.x"},
+    {"id": "ipad-10", "name": "iPad (10th gen)", "soc": "A14", "max_ios": "18.x"},
+
+    # iPad Pro
+    {"id": "ipad-pro-2015-12", "name": "iPad Pro 12.9 (2015)", "soc": "A9X", "max_ios": "16.7.10"},
+    {"id": "ipad-pro-2016-9", "name": "iPad Pro 9.7 (2016)", "soc": "A9X", "max_ios": "16.7.10"},
+    {"id": "ipad-pro-2017", "name": "iPad Pro (2017)", "soc": "A10X", "max_ios": "16.7.10"},
     {"id": "ipad-pro-2018", "name": "iPad Pro (2018)", "soc": "A12X", "max_ios": "17.x"},
+    {"id": "ipad-pro-2020", "name": "iPad Pro (2020)", "soc": "A12Z", "max_ios": "17.x"},
     {"id": "ipad-pro-m1", "name": "iPad Pro (M1)", "soc": "M1", "max_ios": "18.x"},
+    {"id": "ipad-pro-m2", "name": "iPad Pro (M2)", "soc": "M2", "max_ios": "18.x"},
 ]
 
 IOS_VERSIONS = [
