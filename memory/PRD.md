@@ -24,15 +24,16 @@ User clarified: they want **Option 1 — Jailbreak Info Hub**, a polished inform
 6. Newsletter signup persisted to MongoDB.
 
 ## What's Been Implemented — 2026-02 (v1)
-- [x] Backend endpoints: `/api/tools`, `/api/tools/{id}`, `/api/tools/{id}/detail`, `/api/devices`, `/api/ios-versions`, `/api/compatibility` (POST), `/api/news`, `/api/tutorials`, `/api/faq`, `/api/stats`, `/api/newsletter` (POST)
+- [x] Backend endpoints: `/api/tools`, `/api/tools/{id}`, `/api/tools/{id}/detail`, `/api/devices`, `/api/ios-versions`, `/api/compatibility` (POST), `/api/news`, `/api/tutorials`, `/api/faq`, `/api/stats`, `/api/newsletter` (POST), `/api/chat` (POST), `/api/chat/{session_id}` (GET)
 - [x] 8 jailbreak tools seeded with full install guides (commands, requirements, steps, troubleshooting)
 - [x] 22 devices and 30 iOS versions seeded
 - [x] Home page with: sticky glass nav, hero + disclaimer + stats, live ticker, compatibility checker, tools directory with filters, device matrix with search, tutorials accordion, news feed, FAQ accordion, risks grid, footer + newsletter form
 - [x] Per-tool detail page at `/tool/:id` — hero, requirements checklist, copyable CLI commands, step-by-step install, troubleshooting, disclaimer
+- [x] **AI Assistant (Claude Sonnet 4.5)** — floating chat panel grounded in the catalog, answers device+iOS questions with cited commands and `/tool/{id}` links, session persisted in MongoDB + localStorage
 - [x] Compatibility checker results link directly to the matching tool's install guide
 - [x] Retro-futurism terminal design with scanlines, grid background, blinking caret, ticker marquee
 - [x] All interactive elements carry `data-testid`
-- [x] Backend + Frontend E2E tested twice — 100% pass (iteration 1 + 2)
+- [x] Backend + Frontend E2E tested three times — 100% pass (iterations 1, 2, 3)
 
 ## Prioritized Backlog
 

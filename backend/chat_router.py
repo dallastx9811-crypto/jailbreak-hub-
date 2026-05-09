@@ -92,18 +92,9 @@ def make_chat_router(db, tools, devices, ios_versions, tool_details):
             raise HTTPException(status_code=400, detail="Message is required")
 
         session_id = req.session_id or str(uuid.uuid4())
-
-        # Append the user message to history
         now = datetime.now(timezone.utc).isoformat()
-        user_doc = {
-            "session_id": session_id,
-            "role": "user",
-            "content": req.message,
-            "ts": now,
-        }
-        await db.chat_messages.insert_one(dict(user_doc))
 
-        # Call LLM (LlmChat uses session_id internally for context continuity)
+        # Call LLM first; only persist on success to avoid dangling user msgs.
         chat_client = LlmChat(
             api_key=LLM_KEY,
             session_id=session_id,
@@ -117,13 +108,20 @@ def make_chat_router(db, tools, devices, ios_versions, tool_details):
 
         reply_text = reply if isinstance(reply, str) else str(reply)
 
-        assistant_doc = {
-            "session_id": session_id,
-            "role": "assistant",
-            "content": reply_text,
-            "ts": datetime.now(timezone.utc).isoformat(),
-        }
-        await db.chat_messages.insert_one(dict(assistant_doc))
+        await db.chat_messages.insert_many([
+            {
+                "session_id": session_id,
+                "role": "user",
+                "content": req.message,
+                "ts": now,
+            },
+            {
+                "session_id": session_id,
+                "role": "assistant",
+                "content": reply_text,
+                "ts": datetime.now(timezone.utc).isoformat(),
+            },
+        ])
 
         # Fetch full history for the session (excluding _id)
         cursor = db.chat_messages.find(
