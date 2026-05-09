@@ -29,6 +29,7 @@ User clarified: they want **Option 1 — Jailbreak Info Hub**, a polished inform
 - [x] 22 devices and 30 iOS versions seeded
 - [x] Home page with: sticky glass nav, hero + disclaimer + stats, live ticker, compatibility checker, tools directory with filters, device matrix with search, tutorials accordion, news feed, FAQ accordion, risks grid, footer + newsletter form
 - [x] Per-tool detail page at `/tool/:id` — hero, requirements checklist, copyable CLI commands, step-by-step install, troubleshooting, disclaimer
+- [x] **Live GitHub Releases Tracker** at `/api/tools/{id}/releases` — pulls real signed binaries (.ipa/.dmg/.deb/etc.) from the maintainer's GitHub release with size, download count, and direct asset URLs. 10-min MongoDB cache with `?refresh=true` override. Renders as an interactive section on each tool detail page with one-click download buttons.
 - [x] **AI Assistant (Claude Sonnet 4.5)** — floating chat panel grounded in the catalog, answers device+iOS questions with cited commands and `/tool/{id}` links, session persisted in MongoDB + localStorage
 - [x] Compatibility checker results link directly to the matching tool's install guide
 - [x] Retro-futurism terminal design with scanlines, grid background, blinking caret, ticker marquee
