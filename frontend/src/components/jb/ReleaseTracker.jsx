@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Download,
     RefreshCw,
@@ -8,9 +8,13 @@ import {
     HardDrive,
     Calendar,
     AlertCircle,
+    Cpu,
+    Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getToolReleases } from "@/lib/api";
+import { detectPlatform, scoreAsset, PLATFORM_LABELS } from "@/lib/platform";
+import Changelog, { recordDownloadedTag } from "@/components/jb/Changelog";
 
 function formatSize(bytes) {
     if (!bytes) return "—";
@@ -42,11 +46,24 @@ function platformGuess(name) {
     return "Binary";
 }
 
+const PLATFORM_OPTIONS = [
+    "auto",
+    "ios",
+    "macos-arm64",
+    "macos-x86_64",
+    "linux-x86_64",
+    "linux-arm64",
+    "windows",
+    "all",
+];
+
 export default function ReleaseTracker({ toolId }) {
     const [info, setInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
+    const [detected] = useState(() => detectPlatform());
+    const [target, setTarget] = useState("auto");
 
     const load = async (refresh = false) => {
         try {
@@ -55,7 +72,7 @@ export default function ReleaseTracker({ toolId }) {
             setInfo(data);
             setError(null);
             if (refresh) toast.success("Release info refreshed");
-        } catch (e) {
+        } catch {
             setError("Could not reach the release tracker");
         } finally {
             setLoading(false);
@@ -67,6 +84,18 @@ export default function ReleaseTracker({ toolId }) {
         load(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toolId]);
+
+    const effectiveTarget = target === "auto" ? detected : target;
+
+    const ranked = useMemo(() => {
+        if (!info?.assets) return [];
+        return info.assets
+            .map((a) => ({ ...a, score: scoreAsset(a.name, effectiveTarget) }))
+            .sort((a, b) => b.score - a.score);
+    }, [info, effectiveTarget]);
+
+    const topScore = ranked[0]?.score ?? 0;
+    const recommended = ranked.find((a) => a.score === topScore && topScore >= 70);
 
     if (loading) {
         return (
@@ -126,150 +155,230 @@ export default function ReleaseTracker({ toolId }) {
     }
 
     const onDownload = (asset) => {
+        recordDownloadedTag(toolId, info.tag);
         toast.success(`Starting download: ${asset.name}`);
-        // The link itself does the download via target="_blank"
     };
 
+    const visibleAssets =
+        effectiveTarget === "all" ? ranked : ranked.filter((a) => a.score > 0);
+    const finalAssets = visibleAssets.length > 0 ? visibleAssets : ranked;
+
     return (
-        <div
-            data-testid="release-tracker"
-            className="border border-jb-primary/30 bg-jb-surface jb-glow-border"
-        >
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 border-b border-white/10 bg-black/40">
-                <div className="flex items-center gap-3 flex-wrap">
-                    <CheckCircle2 size={16} className="text-jb-primary" />
-                    <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-jb-primary">
-                        Verified release · live from GitHub
-                    </span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <a
-                        href={info.html_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        data-testid="release-github-link"
-                        className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted hover:text-white transition-colors"
-                    >
-                        <Github size={12} />
-                        {info.repo}
-                    </a>
-                    <button
-                        data-testid="release-refresh"
-                        onClick={() => load(true)}
-                        disabled={refreshing}
-                        className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted hover:text-jb-primary transition-colors disabled:opacity-40"
-                        title="Force refresh"
-                    >
-                        <RefreshCw
-                            size={12}
-                            className={refreshing ? "animate-spin" : ""}
-                        />
-                        {refreshing ? "Refreshing" : "Refresh"}
-                    </button>
-                </div>
-            </div>
-
-            {/* Version block */}
-            <div className="px-6 py-6 border-b border-white/10">
-                <div className="flex flex-wrap items-baseline gap-4 mb-2">
-                    <h3
-                        data-testid="release-tag"
-                        className="font-mono text-3xl md:text-4xl font-black tracking-tighter text-white"
-                    >
-                        {info.tag}
-                    </h3>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted inline-flex items-center gap-1.5">
-                        <Calendar size={11} />
-                        Published {timeAgo(info.published_at)}
-                    </span>
-                </div>
-                {info.name && info.name !== info.tag && (
-                    <div className="text-sm text-white">{info.name}</div>
-                )}
-            </div>
-
-            {/* Assets */}
-            <div className="border-b border-white/10">
-                <div className="px-6 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-jb-muted">
-                        &gt; binaries · {info.assets.length}
-                    </span>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted">
-                        click to download
-                    </span>
-                </div>
-                {info.assets.length === 0 ? (
-                    <div className="px-6 py-8 text-center font-mono text-sm text-jb-muted">
-                        This release ships no binary assets. View the source
-                        on GitHub.
-                    </div>
-                ) : (
-                    <ul>
-                        {info.assets.map((a, i) => (
-                            <li
-                                key={i}
-                                data-testid={`release-asset-${i}`}
-                                className="border-b border-white/5 last:border-b-0"
-                            >
-                                <a
-                                    href={a.download_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={() => onDownload(a)}
-                                    data-testid={`release-asset-download-${i}`}
-                                    className="group flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4 hover:bg-jb-primary/5 transition-colors"
-                                >
-                                    <span className="inline-flex items-center justify-center w-8 h-8 border border-white/15 group-hover:border-jb-primary/60 transition-colors shrink-0">
-                                        <HardDrive
-                                            size={14}
-                                            className="text-jb-muted group-hover:text-jb-primary transition-colors"
-                                        />
-                                    </span>
-                                    <span className="flex-1 min-w-0">
-                                        <span className="block font-mono text-sm text-white truncate">
-                                            {a.name}
-                                        </span>
-                                        <span className="flex items-center gap-3 mt-0.5">
-                                            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted">
-                                                {platformGuess(a.name)}
-                                            </span>
-                                            <span className="font-mono text-[10px] text-jb-muted">
-                                                {formatSize(a.size)}
-                                            </span>
-                                            <span className="font-mono text-[10px] text-jb-muted">
-                                                {a.download_count.toLocaleString()} downloads
-                                            </span>
-                                        </span>
-                                    </span>
-                                    <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary group-hover:text-white transition-colors shrink-0">
-                                        <Download size={14} strokeWidth={2.5} />
-                                        Download
-                                    </span>
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
-
-            {/* Release notes */}
-            {info.body && (
-                <details
-                    data-testid="release-notes"
-                    className="group"
-                >
-                    <summary className="px-6 py-4 cursor-pointer font-mono text-[10px] uppercase tracking-[0.28em] text-jb-muted hover:text-jb-primary transition-colors flex items-center justify-between">
-                        &gt; release notes
-                        <span className="text-jb-primary group-open:rotate-90 transition-transform">
-                            →
+        <>
+            <div
+                data-testid="release-tracker"
+                className="border border-jb-primary/30 bg-jb-surface jb-glow-border"
+            >
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 border-b border-white/10 bg-black/40">
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <CheckCircle2 size={16} className="text-jb-primary" />
+                        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-jb-primary">
+                            Verified release · live from GitHub
                         </span>
-                    </summary>
-                    <pre className="px-6 pb-6 font-mono text-xs text-jb-muted leading-relaxed whitespace-pre-wrap break-words">
-                        {info.body}
-                    </pre>
-                </details>
-            )}
-        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <a
+                            href={info.html_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            data-testid="release-github-link"
+                            className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted hover:text-white transition-colors"
+                        >
+                            <Github size={12} />
+                            {info.repo}
+                        </a>
+                        <button
+                            data-testid="release-refresh"
+                            onClick={() => load(true)}
+                            disabled={refreshing}
+                            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted hover:text-jb-primary transition-colors disabled:opacity-40"
+                            title="Force refresh"
+                        >
+                            <RefreshCw
+                                size={12}
+                                className={refreshing ? "animate-spin" : ""}
+                            />
+                            {refreshing ? "Refreshing" : "Refresh"}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Version block */}
+                <div className="px-6 py-6 border-b border-white/10">
+                    <div className="flex flex-wrap items-baseline gap-4 mb-2">
+                        <h3
+                            data-testid="release-tag"
+                            className="font-mono text-3xl md:text-4xl font-black tracking-tighter text-white"
+                        >
+                            {info.tag}
+                        </h3>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted inline-flex items-center gap-1.5">
+                            <Calendar size={11} />
+                            Published {timeAgo(info.published_at)}
+                        </span>
+                    </div>
+                    {info.name && info.name !== info.tag && (
+                        <div className="text-sm text-white">{info.name}</div>
+                    )}
+                </div>
+
+                {/* Platform picker */}
+                {info.assets.length > 1 && (
+                    <div
+                        data-testid="platform-picker"
+                        className="px-6 py-4 border-b border-white/10 bg-black/20"
+                    >
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-2">
+                                <Cpu size={12} className="text-jb-accent" />
+                                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-jb-accent">
+                                    Detected: {PLATFORM_LABELS[detected] || detected}
+                                </span>
+                            </div>
+                            {target !== "auto" && (
+                                <button
+                                    data-testid="platform-reset"
+                                    onClick={() => setTarget("auto")}
+                                    className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted hover:text-jb-primary"
+                                >
+                                    Reset to auto
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                            {PLATFORM_OPTIONS.map((p) => {
+                                const active = target === p;
+                                return (
+                                    <button
+                                        key={p}
+                                        data-testid={`platform-opt-${p}`}
+                                        onClick={() => setTarget(p)}
+                                        className={`font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5 border transition-colors ${
+                                            active
+                                                ? "border-jb-primary bg-jb-primary text-black"
+                                                : "border-white/15 text-jb-muted hover:border-white hover:text-white"
+                                        }`}
+                                    >
+                                        {PLATFORM_LABELS[p] || p}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Assets */}
+                <div className="border-b border-white/10">
+                    <div className="px-6 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-jb-muted">
+                            &gt; binaries · {finalAssets.length}
+                            {effectiveTarget !== "all" && finalAssets.length !== info.assets.length && (
+                                <span className="text-jb-accent ml-2">
+                                    (filtered for {PLATFORM_LABELS[effectiveTarget] || effectiveTarget})
+                                </span>
+                            )}
+                        </span>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted">
+                            click to download
+                        </span>
+                    </div>
+                    {finalAssets.length === 0 ? (
+                        <div className="px-6 py-8 text-center font-mono text-sm text-jb-muted">
+                            This release ships no binary assets. View the
+                            source on GitHub.
+                        </div>
+                    ) : (
+                        <ul>
+                            {finalAssets.map((a, i) => {
+                                const isRecommended =
+                                    recommended &&
+                                    a.download_url === recommended.download_url;
+                                return (
+                                    <li
+                                        key={i}
+                                        data-testid={`release-asset-${i}`}
+                                        className={`border-b border-white/5 last:border-b-0 ${
+                                            isRecommended
+                                                ? "bg-jb-primary/[0.04]"
+                                                : ""
+                                        }`}
+                                    >
+                                        <a
+                                            href={a.download_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            onClick={() => onDownload(a)}
+                                            data-testid={`release-asset-download-${i}`}
+                                            className="group flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4 hover:bg-jb-primary/5 transition-colors"
+                                        >
+                                            <span className="inline-flex items-center justify-center w-8 h-8 border border-white/15 group-hover:border-jb-primary/60 transition-colors shrink-0">
+                                                <HardDrive
+                                                    size={14}
+                                                    className="text-jb-muted group-hover:text-jb-primary transition-colors"
+                                                />
+                                            </span>
+                                            <span className="flex-1 min-w-0">
+                                                <span className="flex items-center gap-2 flex-wrap">
+                                                    <span className="font-mono text-sm text-white truncate">
+                                                        {a.name}
+                                                    </span>
+                                                    {isRecommended && (
+                                                        <span
+                                                            data-testid={`release-recommended-${i}`}
+                                                            className="inline-flex items-center gap-1 border border-jb-primary/60 bg-jb-primary/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary"
+                                                        >
+                                                            <Sparkles size={9} />
+                                                            For your device
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <span className="flex items-center gap-3 mt-0.5">
+                                                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-jb-muted">
+                                                        {platformGuess(a.name)}
+                                                    </span>
+                                                    <span className="font-mono text-[10px] text-jb-muted">
+                                                        {formatSize(a.size)}
+                                                    </span>
+                                                    <span className="font-mono text-[10px] text-jb-muted">
+                                                        {a.download_count.toLocaleString()}{" "}
+                                                        downloads
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-jb-primary group-hover:text-white transition-colors shrink-0">
+                                                <Download
+                                                    size={14}
+                                                    strokeWidth={2.5}
+                                                />
+                                                Download
+                                            </span>
+                                        </a>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
+
+                {/* Release notes */}
+                {info.body && (
+                    <details data-testid="release-notes" className="group">
+                        <summary className="px-6 py-4 cursor-pointer font-mono text-[10px] uppercase tracking-[0.28em] text-jb-muted hover:text-jb-primary transition-colors flex items-center justify-between">
+                            &gt; release notes
+                            <span className="text-jb-primary group-open:rotate-90 transition-transform">
+                                →
+                            </span>
+                        </summary>
+                        <pre className="px-6 pb-6 font-mono text-xs text-jb-muted leading-relaxed whitespace-pre-wrap break-words">
+                            {info.body}
+                        </pre>
+                    </details>
+                )}
+            </div>
+
+            {/* Changelog (only renders if user has a stored last-tag that differs) */}
+            <Changelog toolId={toolId} currentTag={info.tag} />
+        </>
     );
 }

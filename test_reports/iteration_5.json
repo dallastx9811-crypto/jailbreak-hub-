@@ -1,0 +1,53 @@
+{
+  "summary": "Iteration 5 testing: Validated GitHub Releases changelog backend endpoint and frontend platform-aware highlighting + changelog diff view on /tool/palera1n. All 6 new backend tests pass, all 35 regression tests pass, and end-to-end frontend flows (platform picker, recommended badge, localStorage tracking, changelog panel render/expand/dismiss) work as specified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_changelog.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/changelog_results.xml",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Changelog.jsx line 36: when storedTag is older but the user dismisses, the panel does not refetch on next visit because storedTag is bumped to currentTag; this is intentional. OK.",
+    "ReleaseTracker.jsx line 164: `finalAssets = visibleAssets.length > 0 ? visibleAssets : ranked` correctly avoids empty list when filter has no matches (e.g., iOS filter on palera1n which has no .ipa). Good UX fallback.",
+    "platform.js linux-x86_64 case: regex `/x86_64|x64|amd64/.test(ua)` is checked AFTER the linux test; on Linux UA strings that don't include `x86_64`, falls through to `linux` which still matches scoreAsset linux-x86_64 path. OK.",
+    "scoreAsset for `linux-x86_64`: ordering bug — `if (matches(/linux/) && !matches(/arm|aarch/)) return 80;` runs BEFORE the `\\.deb` clause, so a `.deb-amd64` not containing `linux` token would score 90 only if matched second; minor since most linux assets contain `linux` substring."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_changelog.py (new)"
+  ],
+  "success_rate": {"backend": "100% (41/41)", "frontend": "100% on all targeted flows"},
+  "test_credentials": "N/A - no auth in this app",
+  "seed_data_creation": "Used localStorage.setItem('jbhub_last_release_palera1n','v2.0') in browser to trigger changelog panel.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend changelog endpoint: GET /api/tools/{id}/releases/changelog?from_tag=... returns {has_tracker, repo, from_tag, releases:[{tag,name,published_at,html_url,body}], count}. With from_tag=v2.0 returns 6 entries; without from_tag returns up to 5; from_tag==latest returns 0; checkra1n returns has_tracker=false. Frontend: detected platform on headless preview is 'linux-x86_64'; recommended badge appears on palera1n-linux-x86_64. Platform picker has 8 chips. Changelog panel only renders when localStorage 'jbhub_last_release_palera1n' is set AND differs from current tag; dismiss button updates storage to current tag.",
+  "verified_flows": [
+    "GET /api/tools/palera1n/releases/changelog (no from_tag) -> 5 entries",
+    "GET /api/tools/palera1n/releases/changelog?from_tag=v2.0 -> 6 entries, v2.0 excluded",
+    "GET /api/tools/palera1n/releases/changelog?from_tag=v2.2.1 -> 0 entries (latest)",
+    "GET /api/tools/checkra1n/releases/changelog -> has_tracker=false, releases=[]",
+    "GET /api/tools/does-not-exist/releases/changelog -> has_tracker=false",
+    "Platform picker visible with 8 chips: auto, ios, macos-arm64, macos-x86_64, linux-x86_64, linux-arm64, windows, all",
+    "Detected: Linux x64 label rendered",
+    "Recommended badge (data-testid='release-recommended-0') on palera1n-linux-x86_64 in auto mode",
+    "Clicking macos-arm64 chip filters to 3 assets and shows '(filtered for macOS (Apple))' caption",
+    "Clicking 'all' shows all 11 assets (no filter caption)",
+    "Clicking download asset stores tag 'v2.2.1' in localStorage 'jbhub_last_release_palera1n'",
+    "Changelog panel hidden when storedTag === currentTag",
+    "Changelog panel visible (cyan border, jb-accent) when storedTag='v2.0', shows 6 entries with 'Update available · you're on v2.0, latest is v2.2.1'",
+    "First entry body open by default (971 chars), clicking second entry expands its body (1361 chars)",
+    "Dismiss button hides changelog and updates localStorage to current tag",
+    "checkra1n shows release-tracker-unavailable and no changelog",
+    "All 35 prior regression tests still pass"
+  ]
+}

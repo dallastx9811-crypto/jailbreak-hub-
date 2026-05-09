@@ -15,6 +15,12 @@ export const getToolReleases = (id, refresh = false) =>
     api
         .get(`/tools/${id}/releases${refresh ? "?refresh=true" : ""}`)
         .then((r) => r.data);
+export const getToolChangelog = (id, fromTag) =>
+    api
+        .get(
+            `/tools/${id}/releases/changelog${fromTag ? `?from_tag=${encodeURIComponent(fromTag)}` : ""}`,
+        )
+        .then((r) => r.data);
 export const getDevices = () => api.get("/devices").then((r) => r.data);
 export const getIosVersions = () =>
     api.get("/ios-versions").then((r) => r.data.versions);

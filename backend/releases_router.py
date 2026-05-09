@@ -85,6 +85,22 @@ async def _fetch_from_github(repo: str) -> Dict[str, Any]:
         return resp.json()
 
 
+async def _fetch_all_releases(repo: str, limit: int = 30) -> List[Dict[str, Any]]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "jb-hub-release-tracker",
+    }
+    token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    url = f"https://api.github.com/repos/{repo}/releases?per_page={limit}"
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        return resp.json() or []
+
+
 def _to_release_info(tool_id: str, repo: str, raw: Dict[str, Any]) -> ReleaseInfo:
     assets = []
     for a in raw.get("assets", []) or []:
@@ -170,5 +186,53 @@ def make_releases_router(db):
         info = _to_release_info(tool_id, repo, raw)
         await _store_cache(info)
         return info
+
+    @router.get("/{tool_id}/releases/changelog")
+    async def get_changelog(tool_id: str, from_tag: Optional[str] = None):
+        repo = GITHUB_REPOS.get(tool_id)
+        if not repo:
+            return {
+                "tool_id": tool_id,
+                "has_tracker": False,
+                "from_tag": from_tag,
+                "releases": [],
+            }
+        try:
+            raw = await _fetch_all_releases(repo, limit=30)
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=502,
+                detail=f"GitHub API error {e.response.status_code} for {repo}",
+            )
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(status_code=502, detail=f"GitHub fetch failed: {e}")
+
+        # Stop when we encounter from_tag (exclusive). If from_tag missing/unknown,
+        # return the latest 5 entries.
+        between: List[Dict[str, Any]] = []
+        for r in raw:
+            tag = r.get("tag_name")
+            if from_tag and tag == from_tag:
+                break
+            between.append(
+                {
+                    "tag": tag,
+                    "name": r.get("name") or tag,
+                    "published_at": r.get("published_at"),
+                    "html_url": r.get("html_url"),
+                    "body": (r.get("body") or "")[:2000],
+                }
+            )
+            if not from_tag and len(between) >= 5:
+                break
+
+        return {
+            "tool_id": tool_id,
+            "has_tracker": True,
+            "repo": repo,
+            "from_tag": from_tag,
+            "releases": between,
+            "count": len(between),
+        }
 
     return router
