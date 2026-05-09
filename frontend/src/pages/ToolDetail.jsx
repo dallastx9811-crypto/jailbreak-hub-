@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { getToolDetail } from "@/lib/api";
 import Nav from "@/components/jb/Nav";
 import Footer from "@/components/jb/Footer";
+import ChatPanel from "@/components/jb/ChatPanel";
 
 export default function ToolDetail() {
     const { id } = useParams();
@@ -308,6 +309,7 @@ export default function ToolDetail() {
             </section>
 
             <Footer />
+            <ChatPanel />
         </main>
     );
 }

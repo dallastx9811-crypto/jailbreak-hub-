@@ -10,6 +10,7 @@ import NewsFeed from "@/components/jb/NewsFeed";
 import Faq from "@/components/jb/Faq";
 import Risks from "@/components/jb/Risks";
 import Footer from "@/components/jb/Footer";
+import ChatPanel from "@/components/jb/ChatPanel";
 import { getStats } from "@/lib/api";
 
 export default function Home() {
@@ -37,6 +38,7 @@ export default function Home() {
             <Faq />
             <Risks />
             <Footer />
+            <ChatPanel />
         </main>
     );
 }

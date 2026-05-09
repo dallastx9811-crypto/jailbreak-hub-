@@ -24,3 +24,7 @@ export const getFaq = () => api.get("/faq").then((r) => r.data);
 export const getStats = () => api.get("/stats").then((r) => r.data);
 export const subscribeNewsletter = (email) =>
     api.post("/newsletter", { email }).then((r) => r.data);
+export const sendChat = (message, session_id) =>
+    api.post("/chat", { message, session_id }).then((r) => r.data);
+export const getChatHistory = (session_id) =>
+    api.get(`/chat/${session_id}`).then((r) => r.data);

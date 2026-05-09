@@ -512,6 +512,13 @@ async def stats():
 
 app.include_router(api_router)
 
+# Chat assistant (Claude Sonnet 4.5 via Emergent Universal Key)
+from chat_router import make_chat_router  # noqa: E402
+
+app.include_router(
+    make_chat_router(db, TOOLS, DEVICES, IOS_VERSIONS, TOOL_DETAILS)
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

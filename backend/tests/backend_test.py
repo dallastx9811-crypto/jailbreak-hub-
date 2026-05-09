@@ -225,3 +225,75 @@ class TestNewsletter:
     def test_newsletter_invalid_email(self, client):
         r = client.post(f"{API}/newsletter", json={"email": "not-an-email"})
         assert r.status_code == 422
+
+
+# -------- Chat (iteration 3 - Claude Sonnet 4.5) -------- #
+class TestChat:
+    def test_chat_empty_message_returns_400(self, client):
+        r = client.post(f"{API}/chat", json={"message": ""}, timeout=20)
+        assert r.status_code == 400
+
+    def test_chat_whitespace_message_returns_400(self, client):
+        r = client.post(f"{API}/chat", json={"message": "   "}, timeout=20)
+        assert r.status_code == 400
+
+    def test_chat_creates_session_and_returns_reply(self, client):
+        payload = {"message": "My iPhone X is on iOS 16.6.1, can I jailbreak it?"}
+        r = client.post(f"{API}/chat", json=payload, timeout=60)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert "session_id" in data and isinstance(data["session_id"], str) and len(data["session_id"]) > 0
+        # Validate UUID format
+        try:
+            uuid.UUID(data["session_id"])
+        except ValueError:
+            pytest.fail("session_id is not a valid UUID")
+        assert "reply" in data and isinstance(data["reply"], str) and len(data["reply"]) > 0
+        assert "messages" in data and isinstance(data["messages"], list)
+        # First user + first assistant message at minimum
+        assert len(data["messages"]) >= 2
+        roles = [m["role"] for m in data["messages"]]
+        assert roles[0] == "user"
+        assert "assistant" in roles
+        # No mongo _id leaking
+        for m in data["messages"]:
+            assert "_id" not in m
+            assert "role" in m and "content" in m and "ts" in m
+        # Reply should reference palera1n given the catalog grounding
+        assert "palera1n" in data["reply"].lower()
+        # Stash for next test
+        TestChat._sid = data["session_id"]
+
+    def test_chat_continues_session_with_history(self, client):
+        sid = getattr(TestChat, "_sid", None)
+        if not sid:
+            pytest.skip("Previous session test did not run")
+        payload = {"message": "What command should I run for rootless?", "session_id": sid}
+        r = client.post(f"{API}/chat", json=payload, timeout=60)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["session_id"] == sid
+        # Should now include >=4 messages (2 turns)
+        assert len(data["messages"]) >= 4
+        # Order is chronological
+        ts_list = [m["ts"] for m in data["messages"]]
+        assert ts_list == sorted(ts_list)
+
+    def test_chat_history_endpoint(self, client):
+        sid = getattr(TestChat, "_sid", None)
+        if not sid:
+            pytest.skip("Previous session test did not run")
+        r = client.get(f"{API}/chat/{sid}", timeout=20)
+        assert r.status_code == 200
+        data = r.json()
+        assert isinstance(data, list)
+        assert len(data) >= 4
+        for m in data:
+            assert "_id" not in m
+            assert m["role"] in ("user", "assistant")
+            assert isinstance(m["content"], str) and len(m["content"]) > 0
+
+    def test_chat_history_unknown_session_returns_empty_list(self, client):
+        r = client.get(f"{API}/chat/{uuid.uuid4()}", timeout=20)
+        assert r.status_code == 200
+        assert r.json() == []
