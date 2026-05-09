@@ -353,13 +353,13 @@ function CommandBlock({ cmd, idx }) {
     const [copied, setCopied] = useState(false);
 
     const copy = async () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
         try {
             await navigator.clipboard.writeText(cmd.code);
-            setCopied(true);
             toast.success("Copied to clipboard");
-            setTimeout(() => setCopied(false), 1800);
         } catch {
-            toast.error("Copy failed");
+            toast.error("Copy failed — select and copy manually");
         }
     };
 
