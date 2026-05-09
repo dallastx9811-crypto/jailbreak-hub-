@@ -18,6 +18,7 @@ import { getToolDetail } from "@/lib/api";
 import Nav from "@/components/jb/Nav";
 import Footer from "@/components/jb/Footer";
 import ChatPanel from "@/components/jb/ChatPanel";
+import ReleaseTracker from "@/components/jb/ReleaseTracker";
 
 export default function ToolDetail() {
     const { id } = useParams();
@@ -167,6 +168,15 @@ export default function ToolDetail() {
                     />
                 </div>
             </section>
+
+            {/* Release Tracker (live from GitHub) */}
+            <Section
+                kicker="00 · Release.tracker"
+                title="Latest verified release"
+                description="Pulled live from the maintainer's GitHub release. Click any asset to download the real, signed binary directly from the official source."
+            >
+                <ReleaseTracker toolId={tool.id} />
+            </Section>
 
             {/* Requirements */}
             {tool.requirements && (

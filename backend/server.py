@@ -514,10 +514,12 @@ app.include_router(api_router)
 
 # Chat assistant (Claude Sonnet 4.5 via Emergent Universal Key)
 from chat_router import make_chat_router  # noqa: E402
+from releases_router import make_releases_router  # noqa: E402
 
 app.include_router(
     make_chat_router(db, TOOLS, DEVICES, IOS_VERSIONS, TOOL_DETAILS)
 )
+app.include_router(make_releases_router(db))
 
 app.add_middleware(
     CORSMiddleware,

@@ -297,3 +297,88 @@ class TestChat:
         r = client.get(f"{API}/chat/{uuid.uuid4()}", timeout=20)
         assert r.status_code == 200
         assert r.json() == []
+
+
+# -------- Releases (iteration 4 - GitHub Releases tracker) -------- #
+class TestReleases:
+    def test_palera1n_releases_has_tracker(self, client):
+        r = client.get(f"{API}/tools/palera1n/releases", timeout=30)
+        # tolerate occasional 502 from GitHub rate limiting
+        if r.status_code == 502:
+            pytest.skip(f"GitHub API rate limit/upstream: {r.text}")
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d["has_tracker"] is True
+        assert d["tool_id"] == "palera1n"
+        assert d["repo"] == "palera1n/palera1n"
+        assert d["tag"] and isinstance(d["tag"], str)
+        assert d["published_at"] and isinstance(d["published_at"], str)
+        assert d["html_url"].startswith("https://github.com/palera1n/palera1n/")
+        assert isinstance(d["assets"], list) and len(d["assets"]) >= 1
+        for a in d["assets"]:
+            assert {"name", "size", "download_url", "download_count"}.issubset(a.keys())
+            assert isinstance(a["size"], int)
+            assert isinstance(a["download_count"], int)
+            assert a["download_url"].startswith("https://github.com/")
+            assert "/releases/download/" in a["download_url"]
+        assert "fetched_at" in d
+        # No mongo _id leakage
+        assert "_id" not in d
+
+    def test_dopamine_releases(self, client):
+        r = client.get(f"{API}/tools/dopamine/releases", timeout=30)
+        if r.status_code == 502:
+            pytest.skip(f"GitHub upstream: {r.text}")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["has_tracker"] is True
+        assert d["repo"] == "opa334/Dopamine"
+        assert d["tag"]
+        assert isinstance(d["assets"], list)
+
+    def test_roothide_releases(self, client):
+        r = client.get(f"{API}/tools/roothide/releases", timeout=30)
+        if r.status_code == 502:
+            pytest.skip(f"GitHub upstream: {r.text}")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["has_tracker"] is True
+        assert d["repo"] == "RootHide/Bootstrap"
+        assert d["tag"]
+
+    @pytest.mark.parametrize("tool_id", ["checkra1n", "unc0ver", "xinaA15"])
+    def test_no_tracker_tools(self, client, tool_id):
+        r = client.get(f"{API}/tools/{tool_id}/releases", timeout=15)
+        assert r.status_code == 200
+        d = r.json()
+        assert d["has_tracker"] is False
+        assert d["tool_id"] == tool_id
+        assert d.get("repo") is None
+        assert "fetched_at" in d
+        assert "_id" not in d
+
+    def test_caching_behavior(self, client):
+        # First call - may fetch from GitHub or cache
+        r1 = client.get(f"{API}/tools/palera1n/releases", timeout=30)
+        if r1.status_code == 502:
+            pytest.skip("GitHub upstream rate limit")
+        assert r1.status_code == 200
+        fetched_at_1 = r1.json()["fetched_at"]
+
+        # Second call without refresh -> cached, same fetched_at
+        r2 = client.get(f"{API}/tools/palera1n/releases", timeout=30)
+        assert r2.status_code == 200
+        fetched_at_2 = r2.json()["fetched_at"]
+        assert fetched_at_2 == fetched_at_1, "Second call should return cached fetched_at"
+
+        # Third call with refresh=true -> newer fetched_at
+        import time as _time
+        _time.sleep(1.1)
+        r3 = client.get(f"{API}/tools/palera1n/releases?refresh=true", timeout=30)
+        if r3.status_code == 502:
+            pytest.skip("GitHub upstream rate limit on refresh")
+        assert r3.status_code == 200
+        fetched_at_3 = r3.json()["fetched_at"]
+        assert fetched_at_3 > fetched_at_1, (
+            f"refresh=true should produce newer fetched_at. Old={fetched_at_1} New={fetched_at_3}"
+        )

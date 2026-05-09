@@ -11,6 +11,10 @@ export const api = axios.create({
 export const getTools = () => api.get("/tools").then((r) => r.data);
 export const getToolDetail = (id) =>
     api.get(`/tools/${id}/detail`).then((r) => r.data);
+export const getToolReleases = (id, refresh = false) =>
+    api
+        .get(`/tools/${id}/releases${refresh ? "?refresh=true" : ""}`)
+        .then((r) => r.data);
 export const getDevices = () => api.get("/devices").then((r) => r.data);
 export const getIosVersions = () =>
     api.get("/ios-versions").then((r) => r.data.versions);
