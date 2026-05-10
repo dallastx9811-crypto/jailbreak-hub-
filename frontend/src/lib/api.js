@@ -8,6 +8,12 @@ export const api = axios.create({
     headers: { "Content-Type": "application/json" },
 });
 
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("jb_token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
+
 export const getTools = () => api.get("/tools").then((r) => r.data);
 export const getToolDetail = (id) =>
     api.get(`/tools/${id}/detail`).then((r) => r.data);
@@ -38,3 +44,14 @@ export const sendChat = (message, session_id) =>
     api.post("/chat", { message, session_id }).then((r) => r.data);
 export const getChatHistory = (session_id) =>
     api.get(`/chat/${session_id}`).then((r) => r.data);
+
+// Auth
+export const register = (email, password) =>
+    api.post("/auth/register", { email, password }).then((r) => r.data);
+export const login = (email, password) =>
+    api.post("/auth/login", { email, password }).then((r) => r.data);
+export const getMe = () => api.get("/auth/me").then((r) => r.data);
+
+// Payments
+export const createCheckout = () =>
+    api.post("/payments/checkout").then((r) => r.data);
